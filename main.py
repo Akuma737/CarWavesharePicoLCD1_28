@@ -11,7 +11,7 @@ SCK = 10
 MOSI = 11
 RST = 12
 BL = 25
-Vbat_Pin = 29
+V_bat_Pin = 29
 
 
 class Lcd1inch28(framebuf.FrameBuffer):
@@ -59,7 +59,7 @@ class Lcd1inch28(framebuf.FrameBuffer):
         self.pwm.duty_u16(duty)  # max 65535
 
     def init_display(self):
-        """Initialize dispaly"""
+        """Initialize display"""
         self.rst(1)
         time.sleep(0.01)
         self.rst(0)
@@ -330,12 +330,12 @@ class QMI8658(object):
     def __init__(self, address=0X6B):
         self._address = address
         self._bus = I2C(id=1, scl=Pin(I2C_SDL), sda=Pin(I2C_SDA), freq=100_000)
-        b_ret = self.WhoAmI()
+        b_ret = self.who_am_i()
         if b_ret:
-            self.Read_Revision()
+            self.read_revision()
         else:
             return NULL
-        self.Config_apply()
+        self.config_apply()
 
     def _read_byte(self, cmd):
         rec = self._bus.readfrom_mem(int(self._address), int(cmd), 1)
@@ -346,23 +346,23 @@ class QMI8658(object):
         return rec
 
     def _read_u16(self, cmd):
-        LSB = self._bus.readfrom_mem(int(self._address), int(cmd), 1)
-        MSB = self._bus.readfrom_mem(int(self._address), int(cmd) + 1, 1)
-        return (MSB[0] << 8) + LSB[0]
+        lsb = self._bus.readfrom_mem(int(self._address), int(cmd), 1)
+        msb = self._bus.readfrom_mem(int(self._address), int(cmd) + 1, 1)
+        return (msb[0] << 8) + lsb[0]
 
     def _write_byte(self, cmd, val):
         self._bus.writeto_mem(int(self._address), int(cmd), bytes([int(val)]))
 
-    def WhoAmI(self):
-        bRet = False
-        if (0x05) == self._read_byte(0x00):
-            bRet = True
-        return bRet
+    def who_am_i(self):
+        b_ret = False
+        if 0x05 == self._read_byte(0x00):
+            b_ret = True
+        return b_ret
 
-    def Read_Revision(self):
+    def read_revision(self):
         return self._read_byte(0x01)
 
-    def Config_apply(self):
+    def config_apply(self):
         # REG CTRL1
         self._write_byte(0x02, 0x60)
         # REG CTRL2 : QMI8658AccRange_8g  and QMI8658AccOdr_1000Hz
@@ -378,13 +378,13 @@ class QMI8658(object):
         # REG CTRL7 : Enable Gyroscope And Accelerometer
         self._write_byte(0x08, 0x03)
 
-    def Read_Raw_XYZ(self):
+    def read_raw_xyz(self):
         xyz = [0, 0, 0, 0, 0, 0]
-        raw_timestamp = self._read_block(0x30, 3)
-        raw_acc_xyz = self._read_block(0x35, 6)
-        raw_gyro_xyz = self._read_block(0x3b, 6)
+        # raw_timestamp = self._read_block(0x30, 3)
+        # raw_acc_xyz = self._read_block(0x35, 6)
+        # raw_gyro_xyz = self._read_block(0x3b, 6)
         raw_xyz = self._read_block(0x35, 12)
-        timestamp = (raw_timestamp[2] << 16) | (raw_timestamp[1] << 8) | (raw_timestamp[0])
+        # timestamp = (raw_timestamp[2] << 16) | (raw_timestamp[1] << 8) | (raw_timestamp[0])
         for i in range(6):
             # xyz[i]=(raw_acc_xyz[(i*2)+1]<<8)|(raw_acc_xyz[i*2])
             # xyz[i+3]=(raw_gyro_xyz[((i+3)*2)+1]<<8)|(raw_gyro_xyz[(i+3)*2])
@@ -393,9 +393,9 @@ class QMI8658(object):
                 xyz[i] = xyz[i] - 65535
         return xyz
 
-    def Read_XYZ(self):
+    def read_xyz(self):
         xyz = [0, 0, 0, 0, 0, 0]
-        raw_xyz = self.Read_Raw_XYZ()
+        raw_xyz = self.read_raw_xyz()
         # QMI8658AccRange_8g
         acc_lsb_div = (1 << 12)
         # QMI8658GyrRange_512dps
@@ -411,11 +411,11 @@ if __name__ == '__main__':
     LCD = Lcd1inch28()
     LCD.set_bl_pwm(65535)
     qmi8658 = QMI8658()
-    Vbat = ADC(Pin(Vbat_Pin))
+    V_bat = ADC(Pin(V_bat_Pin))
 
-    while (True):
+    while True:
         # read QMI8658
-        xyz = qmi8658.Read_XYZ()
+        xyz = qmi8658.read_xyz()
 
         LCD.fill(LCD.white)
 
@@ -436,8 +436,8 @@ if __name__ == '__main__':
         LCD.text("GYR_Z={:+3.2f}".format(xyz[5]), 125, 180 - 3, LCD.white)
 
         LCD.fill_rect(0, 200, 240, 40, 0x180f)
-        reading = Vbat.read_u16() * 3.3 / 65535 * 2
-        LCD.text("Vbat={:.2f}".format(reading), 80, 215, LCD.white)
+        reading = V_bat.read_u16() * 3.3 / 65535 * 2
+        LCD.text("V-bat={:.2f}".format(reading), 80, 215, LCD.white)
 
         LCD.show()
         time.sleep(0.1)
