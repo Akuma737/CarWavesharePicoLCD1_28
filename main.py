@@ -10,9 +10,7 @@ CS = 9
 SCK = 10
 MOSI = 11
 RST = 12
-
 BL = 25
-
 Vbat_Pin = 29
 
 
