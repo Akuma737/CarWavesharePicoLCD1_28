@@ -29,6 +29,8 @@ class Lcd1inch28(framebuf.FrameBuffer):
         self.buffer = bytearray(self.height * self.width * 2)
         super().__init__(self.buffer, self.width, self.height, framebuf.RGB565)
         self.init_display()
+        self.fonts = {}
+        self.load_font1()
 
         self.red = 0x07E0
         self.green = 0x001f
@@ -325,6 +327,44 @@ class Lcd1inch28(framebuf.FrameBuffer):
         self.spi.write(self.buffer)
         self.cs(1)
 
+    def load_font1(self):
+        self.fonts["font1"] = {}
+        for x in range(33, 127):
+            self.fonts["font1"][chr(x)] = framebuf.FrameBuffer(bytearray(76), 19, 32, framebuf.MONO_VLSB)
+        self.fonts["font1"]['a'].fill(0)
+        self.fonts["font1"]['a'].hline(6, 8, 7, 1)
+        self.fonts["font1"]['a'].hline(4, 9, 11, 1)
+        self.fonts["font1"]['a'].hline(4, 10, 3, 1)
+        self.fonts["font1"]['a'].hline(11, 10, 4, 1)
+        self.fonts["font1"]['a'].hline(3, 11, 3, 1)
+        self.fonts["font1"]['a'].hline(3, 12, 3, 1)
+        self.fonts["font1"]['a'].vline(13, 11, 13, 1)
+        self.fonts["font1"]['a'].vline(14, 11, 14, 1)
+        self.fonts["font1"]['a'].vline(15, 11, 14, 1)
+        self.fonts["font1"]['a'].pixel(16, 24, 1)
+        self.fonts["font1"]['a'].hline(6, 15, 7, 1)
+        self.fonts["font1"]['a'].hline(4, 16, 9, 1)
+        self.fonts["font1"]['a'].hline(3, 17, 4, 1)
+        self.fonts["font1"]['a'].hline(3, 18, 3, 1)
+        self.fonts["font1"]['a'].hline(2, 19, 3, 1)
+        self.fonts["font1"]['a'].hline(2, 20, 3, 1)
+        self.fonts["font1"]['a'].hline(3, 21, 3, 1)
+        self.fonts["font1"]['a'].hline(3, 22, 4, 1)
+        self.fonts["font1"]['a'].hline(4, 23, 9, 1)
+        self.fonts["font1"]['a'].hline(5, 24, 7, 1)
+        print(self.fonts["font1"]['a'].buffer)
+
+    def text_plus(self, s: str, x: int, y: int, c: int, f="default"):
+        c_map = framebuf.FrameBuffer(bytearray(4), 2, 1, framebuf.RGB565)
+        c_map.pixel(0, 0, 0xffff-c)
+        c_map.pixel(1, 0, c)
+        if f == "default":
+            self.text(s, x, y, c)
+        else:
+            for char in s:
+                self.blit(self.fonts[f][char], x, y, 0xffff-c, c_map)
+                x = x + 11
+
 
 class QMI8658(object):
     def __init__(self, address=0X6B):
@@ -419,11 +459,10 @@ if __name__ == '__main__':
 
         LCD.fill(LCD.white)
 
-        LCD.fill_rect(0, 0, 240, 40, LCD.red)
-        LCD.text("RP2040-LCD-1.28", 60, 25, LCD.white)
+        LCD.fill_rect(0, 0, 240, 80, LCD.red)
+        LCD.text_plus("a", 60, 20, LCD.white, "font1")
 
-        LCD.fill_rect(0, 40, 240, 40, LCD.blue)
-        LCD.text("Waveshare", 80, 57, LCD.white)
+        # LCD.fill_rect(0, 40, 240, 40, LCD.blue)
 
         LCD.fill_rect(0, 80, 120, 120, 0x1805)
         LCD.text("ACC_X={:+.2f}".format(xyz[0]), 20, 100 - 3, LCD.white)
