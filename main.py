@@ -642,6 +642,8 @@ if __name__ == '__main__':
         LCD.fill_rect(120, 40, 60, 40, 0x0F00)
         LCD.fill_rect(180, 40, 60, 40, 0xF000)
 
+        LCD.set_bl_pwm(1500)
+
         # LCD.fill_rect(0, 80, 120, 120, 0x1805)
         # LCD.text("ACC_X={:+.2f}".format(xyz[0]), 20, 100 - 3, LCD.white)
         # LCD.text("ACC_Y={:+.2f}".format(xyz[1]), 20, 140 - 3, LCD.white)
