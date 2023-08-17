@@ -1,4 +1,4 @@
-from machine import Pin, I2C, SPI, PWM, ADC
+from machine import Pin, I2C, SPI, PWM, ADC, UART
 import framebuf
 import time
 
@@ -352,7 +352,7 @@ class Lcd1inch28(framebuf.FrameBuffer):
         self.fonts["font1"]['a'].hline(3, 22, 4, 1)
         self.fonts["font1"]['a'].hline(4, 23, 9, 1)
         self.fonts["font1"]['a'].hline(5, 24, 7, 1)
-        print(self.fonts["font1"]['a'].buffer)
+        print("test")
 
     def text_plus(self, s: str, x: int, y: int, c: int, f="default"):
         c_map = framebuf.FrameBuffer(bytearray(4), 2, 1, framebuf.RGB565)
@@ -452,6 +452,7 @@ if __name__ == '__main__':
     LCD.set_bl_pwm(65535)
     qmi8658 = QMI8658()
     V_bat = ADC(Pin(V_bat_Pin))
+    uart1=UART(1, baudrate=9600, tx=Pin(4))
 
     while True:
         # read QMI8658
