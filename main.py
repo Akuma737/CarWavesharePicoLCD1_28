@@ -635,14 +635,19 @@ if __name__ == '__main__':
         LCD.fill(LCD.white)
 
         LCD.fill_rect(0, 0, 240, 80, LCD.blue)
-        LCD.text_plus("!!RDKS!!", 120-(4*14), 20, LCD.red, 1)
+        LCD.text_plus("!!RDKS!!", 120 - (4 * 14 * 2), 30, LCD.red, 2)
 
-        LCD.fill_rect(0, 40, 60, 40, 0x000F)
-        LCD.fill_rect(60, 40, 60, 40, 0x00F0)
-        LCD.fill_rect(120, 40, 60, 40, 0x0F00)
-        LCD.fill_rect(180, 40, 60, 40, 0xF000)
+        LCD.fill_rect(0, 80, 60, 40, 0x000F)
+        LCD.fill_rect(60, 80, 60, 40, 0x00F0)
+        LCD.fill_rect(120, 80, 60, 40, 0x0F00)
+        LCD.fill_rect(180, 80, 60, 40, 0xF000)
+        for i in range(0, 16):
+            LCD.fill_rect(i*15, 120, 15, 40, 1 << i)
 
-        LCD.set_bl_pwm(1500)
+        LCD.fill_rect(0, 160, 120, 40, 0x0007)
+        LCD.fill_rect(120, 160, 120, 40, 0xE007)
+
+        LCD.set_bl_pwm(65535)
 
         # LCD.fill_rect(0, 80, 120, 120, 0x1805)
         # LCD.text("ACC_X={:+.2f}".format(xyz[0]), 20, 100 - 3, LCD.white)
