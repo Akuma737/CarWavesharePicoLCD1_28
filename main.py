@@ -30,10 +30,10 @@ class Lcd1inch28(framebuf.FrameBuffer):
         super().__init__(self.buffer, self.width, self.height, framebuf.RGB565)
         self.init_display()
 
-        self.red = 0x07E0
-        self.green = 0x001f
-        self.blue = 0xf800
-        self.white = 0xffff
+        self.red = self.colour(255, 0, 0)
+        self.green = self.colour(0, 255, 0)
+        self.blue = self.colour(0, 0, 255)
+        self.white = self.colour(255, 255, 255)
 
         self.fill(self.white)
         self.show()
@@ -539,6 +539,10 @@ class Lcd1inch28(framebuf.FrameBuffer):
             self.draw_char(char, y, x, scale, c)
             x += letter_width
 
+    @staticmethod
+    def colour(r, g, b):  # Convert RGB888 to RGB565
+        return (((g & 0b00011100) << 3) + ((b & 0b11111000) >> 3) << 8) + (r & 0b11111000) + ((g & 0b11100000) >> 5)
+
 
 class QMI8658(object):
     def __init__(self, address=0X6B):
@@ -627,22 +631,26 @@ if __name__ == '__main__':
     qmi8658 = QMI8658()
     V_bat = ADC(Pin(V_bat_Pin))
     uart1 = UART(1, baudrate=9600, tx=Pin(4))
+    x = 0
+    for i in image:
+        LCD.pixel(x % 240, x // 240, LCD.color(i // 0x10000, i // 0x100 % 0x100, i % 0x100))
+        x += 1
 
     while True:
         # read QMI8658
-        xyz = qmi8658.read_xyz()
+        # xyz = qmi8658.read_xyz()
 
         LCD.fill(LCD.white)
 
         LCD.fill_rect(0, 0, 240, 80, LCD.blue)
-        LCD.text_plus("!!RDKS!!", 120 - (4 * 14 * 2), 30, LCD.red, 2)
+        LCD.text_plus("!!RDKS!!", 120 - (4 * 14 * 1), 30, LCD.red, 1)
 
-        LCD.fill_rect(0, 80, 60, 40, 0x000F)
-        LCD.fill_rect(60, 80, 60, 40, 0x00F0)
-        LCD.fill_rect(120, 80, 60, 40, 0x0F00)
-        LCD.fill_rect(180, 80, 60, 40, 0xF000)
+        LCD.fill_rect(0, 80, 60, 40, LCD.red)
+        LCD.fill_rect(60, 80, 60, 40, LCD.green)
+        LCD.fill_rect(120, 80, 60, 40, LCD.blue)
+        LCD.fill_rect(180, 80, 60, 40, LCD.white)
         for i in range(0, 16):
-            LCD.fill_rect(i*15, 120, 15, 40, 1 << i)
+            LCD.fill_rect(i * 15, 120, 15, 40, 1 << i)
 
         LCD.fill_rect(0, 160, 120, 40, 0x0007)
         LCD.fill_rect(120, 160, 120, 40, 0xE007)
