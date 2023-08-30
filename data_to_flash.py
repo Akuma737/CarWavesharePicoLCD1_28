@@ -4,7 +4,7 @@ def colour(r, g, b):  # Convert RGB888 to RGB565
     return (((g & 0b00011100) << 3) + ((b & 0b11111000) >> 3) << 8) + (r & 0b11111000) + ((g & 0b11100000) >> 5)
 
 if __name__ == '__main__':
-    image = [0x00b2bac6, 0x008a9291, 0x00475042, 0x00404837, 0x00727775, 0x005d6459, 0x00686f65, 0x00717775,
+    image= [0x00b2bac6, 0x008a9291, 0x00475042, 0x00404837, 0x00727775, 0x005d6459, 0x00686f65, 0x00717775,
                       0x00878f97, 0x00b0b9c1, 0x009fa8b0, 0x00b8c1c9, 0x00b7c0ca, 0x00b0b8c3, 0x00b6beca, 0x00b7bfcc,
                       0x00b7c0cb, 0x00b8c0cb, 0x00bac0cc, 0x00bcc0cc, 0x00bac0cc, 0x00bbc1cd, 0x00bbc1cd, 0x00bbc1cd,
                       0x00bbc1cd, 0x00bbc1cd, 0x00bbc1cd, 0x00bbc1cd, 0x00bac0cc, 0x00b9bfcb, 0x00b7bdc9, 0x00b6bcc8,
@@ -7204,12 +7204,13 @@ if __name__ == '__main__':
                       0x00622a31, 0x00221717, 0x001b0f14, 0x001f191a, 0x001e1b1c, 0x00221e1f, 0x00292526, 0x002b2829,
                       0x002b292c, 0x00242225, 0x00110f12, 0x00121013, 0x00141416, 0x0018181a, 0x001d1d1f, 0x00222224,
                       0x00242426, 0x0028282a, 0x0028282a, 0x0029292b, 0x002a2a2c, 0x002a2a2c, 0x002a2a2c, 0x002b2b2d]
-    data = "bytearray(b'"
+    data=bytearray(240*240*2)
+    count=0
     for i in image:
         pixel = colour(i // 0x10000, i // 0x100 % 0x100, i % 0x100)
-        data += hex(pixel // 0x100 % 0x100)
-        data += hex(pixel % 0x100)
-    data = data.replace("0x", "\\x")
-    data += "')"
-    with open('image.json', 'w') as f:
+        data[count] = pixel // 0x100 % 0x100
+        count += 1
+        data[count] = pixel % 0x100
+        count += 1
+    with open('image.fb', 'wb') as f:
         f.write(data)

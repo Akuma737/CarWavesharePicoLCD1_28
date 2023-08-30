@@ -10,7 +10,7 @@ RST = 12
 BL = 25
 
 
-class LCD1inch28(framebuf.FrameBuffer):
+class Lcd1inch28(framebuf.FrameBuffer):
     def __init__(self):
         self.width = 240
         self.height = 240
@@ -26,16 +26,19 @@ class LCD1inch28(framebuf.FrameBuffer):
         super().__init__(self.buffer, self.width, self.height, framebuf.RGB565)
         self.init_display()
 
-        self.red = 0x07E0
-        self.green = 0x001f
-        self.blue = 0xf800
-        self.white = 0xffff
+        self.red = self.colour(255, 0, 0)
+        self.green = self.colour(0, 255, 0)
+        self.blue = self.colour(0, 0, 255)
+        self.white = self.colour(255, 255, 255)
 
         self.fill(self.white)
         self.show()
 
         self.pwm = PWM(Pin(BL))
         self.pwm.freq(5000)
+        self.font = {}
+        #with open('font.json', 'r') as f:
+            #self.font = json.load(f)
 
     def write_cmd(self, cmd):
         self.cs(1)
@@ -320,3 +323,27 @@ class LCD1inch28(framebuf.FrameBuffer):
         self.cs(0)
         self.spi.write(self.buffer)
         self.cs(1)
+
+    def draw_char(self, c, top, left, scale=1, color=0xffff):
+        code_width = 16
+        if c not in self.font:
+            c = 'invalid'
+        arr = self.font[c]
+        for row in range(26):
+            code = arr[row]
+            for col in range(code_width, -1, -1):
+                if code & (1 << col):
+                    x, y = left + scale * (code_width - col), top + scale * row
+                    for a in range(scale):
+                        for b in range(scale):
+                            self.pixel(x + a, y + b, color)
+
+    def text_plus(self, s: str, x: int, y: int, c: int, scale=1):
+        letter_width = 14 * scale
+        for char in s:
+            self.draw_char(char, y, x, scale, c)
+            x += letter_width
+
+    @staticmethod
+    def colour(r, g, b):  # Convert RGB888 to RGB565
+        return (((g & 0b00011100) << 3) + ((b & 0b11111000) >> 3) << 8) + (r & 0b11111000) + ((g & 0b11100000) >> 5)
